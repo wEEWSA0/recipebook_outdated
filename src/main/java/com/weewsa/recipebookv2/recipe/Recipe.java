@@ -60,4 +60,5 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe")
     @Lazy
     private Set<Ingredient> ingredients;
+
 }
