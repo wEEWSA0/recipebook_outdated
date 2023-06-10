@@ -19,7 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-//@EqualsAndHashCode(exclude = {"ingredients", "steps"})
+@EqualsAndHashCode(exclude = {"ingredients", "steps"})
 public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,21 +41,23 @@ public class Recipe {
             uniqueConstraints = {@UniqueConstraint(columnNames = {"recipe_id", "tag_id"})})
     private Set<Tag> recipeTags;
     @JsonIgnore
+    @OneToMany(mappedBy = "recipe")/*
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "step",
             joinColumns = @JoinColumn(name = "recipe_id"),
             inverseJoinColumns = {@JoinColumn(name = "step_number"), @JoinColumn(name = "recipe_id")}
-    )
+    )*/
     @Lazy
     private Set<Step> steps;
     @JsonIgnore
+    @OneToMany(mappedBy = "recipe")/*
     @OneToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "ingredient",
             joinColumns = @JoinColumn(name = "recipe_id"),
             inverseJoinColumns = {@JoinColumn(name = "ingredient_number"), @JoinColumn(name = "recipe_id")}
-    )
+    )*/
     @Lazy
     private Set<Ingredient> ingredients;
 
