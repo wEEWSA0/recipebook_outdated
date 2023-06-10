@@ -2,12 +2,9 @@ package com.weewsa.recipebookv2.controller.recipes;
 
 import com.weewsa.recipebookv2.authenticate.JWTService;
 import com.weewsa.recipebookv2.authenticate.exception.NotAuthorized;
+import com.weewsa.recipebookv2.controller.recipes.dto.*;
 import com.weewsa.recipebookv2.recipe.RecipeResponseCreator;
 import com.weewsa.recipebookv2.recipe.RecipeService;
-import com.weewsa.recipebookv2.controller.recipes.dto.NameRequest;
-import com.weewsa.recipebookv2.controller.recipes.dto.RecipeRequest;
-import com.weewsa.recipebookv2.controller.recipes.dto.NameAndTagsRequest;
-import com.weewsa.recipebookv2.controller.recipes.dto.TagRequest;
 import com.weewsa.recipebookv2.recipe.exception.RecipeNotFound;
 import com.weewsa.recipebookv2.refreshToken.exception.InvalidToken;
 import com.weewsa.recipebookv2.refreshToken.exception.NotEnoughRights;
@@ -125,6 +122,42 @@ public class RecipeController {
             var recipes = recipeService.getRecipesWithTagsAndName(request.getTags(), request.getName());
 
             return ResponseEntity.ok(recipeResponseCreator.createSetOfResponse(recipes));
+        } catch (RecipeNotFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Something went wrong");
+        }
+    }
+
+    @PostMapping("like")
+    public ResponseEntity<String> like(@RequestBody UserReactionToRecipeRequest userReactionToRecipeRequest, HttpServletRequest request) {
+        try {
+            var claims = jwtService.getClaimsFromRequest(request);
+            if (!jwtService.hasAccess(claims, Role.USER)) {
+                throw new NotEnoughRights("Not enough rights");
+            }
+
+            recipeService.likeRecipe(userReactionToRecipeRequest, claims.getSubject());
+
+            return ResponseEntity.ok("Saved");
+        } catch (RecipeNotFound e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Something went wrong");
+        }
+    }
+
+    @PostMapping("favourite")
+    public ResponseEntity<String> favourite(@RequestBody UserReactionToRecipeRequest userReactionToRecipeRequest, HttpServletRequest request) {
+        try {
+            var claims = jwtService.getClaimsFromRequest(request);
+            if (!jwtService.hasAccess(claims, Role.USER)) {
+                throw new NotEnoughRights("Not enough rights");
+            }
+
+            recipeService.favouriteRecipe(userReactionToRecipeRequest, claims.getSubject());
+
+            return ResponseEntity.ok("Saved");
         } catch (RecipeNotFound e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

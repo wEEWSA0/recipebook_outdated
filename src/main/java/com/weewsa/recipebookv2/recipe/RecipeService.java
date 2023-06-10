@@ -1,18 +1,17 @@
 package com.weewsa.recipebookv2.recipe;
 
+import com.weewsa.recipebookv2.controller.recipes.dto.*;
 import com.weewsa.recipebookv2.ingredient.Ingredient;
 import com.weewsa.recipebookv2.ingredient.IngredientRepository;
-import com.weewsa.recipebookv2.controller.recipes.dto.IngredientRequest;
-import com.weewsa.recipebookv2.controller.recipes.dto.RecipeRequest;
-import com.weewsa.recipebookv2.controller.recipes.dto.StepRequest;
-import com.weewsa.recipebookv2.controller.recipes.dto.TagRequest;
 import com.weewsa.recipebookv2.recipe.exception.RecipeNotFound;
 import com.weewsa.recipebookv2.refreshToken.exception.NotEnoughRights;
 import com.weewsa.recipebookv2.step.Step;
 import com.weewsa.recipebookv2.step.StepRepository;
 import com.weewsa.recipebookv2.tag.Tag;
 import com.weewsa.recipebookv2.tag.TagRepository;
+import com.weewsa.recipebookv2.user.User;
 import com.weewsa.recipebookv2.user.UserRepository;
+import com.weewsa.recipebookv2.user.exception.UserNotFound;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,6 @@ public class RecipeService {
         return foundRecipes;
     }
 
-    // todo RecipeModel ответы
     public Set<Recipe> getRecipesWithTags(Set<TagRequest> tagRequests) throws RecipeNotFound {
         Set<Tag> tags = getExistTags(tagRequests);
 
@@ -100,13 +98,7 @@ public class RecipeService {
 
     @Transactional(rollbackOn = Exception.class)
     public void editRecipe(Long recipeId, RecipeRequest recipeRequest, String login) throws RecipeNotFound, NotEnoughRights {
-        Optional<Recipe> foundRecipe = recipeRepository.findById(recipeId);
-
-        if (foundRecipe.isEmpty()) {
-            throw new RecipeNotFound("Recipe not found");
-        }
-
-        var recipe = foundRecipe.get();
+        var recipe = getRecipeById(recipeId);
 
         var userId = userRepository.findIdByLogin(login);
         if (!recipe.getCreatorId().equals(userId)) {
@@ -137,18 +129,71 @@ public class RecipeService {
     }
 
     public void deleteRecipe(Long recipeId, String login) throws RecipeNotFound, NotEnoughRights {
-        var foundRecipe = recipeRepository.findById(recipeId);
-
-        if (foundRecipe.isEmpty()) {
-            throw new RecipeNotFound("Recipe not found");
-        }
+        var recipe = getRecipeById(recipeId);
 
         var userId = userRepository.findIdByLogin(login);
-        if (!foundRecipe.get().getCreatorId().equals(userId)) {
+        if (!recipe.getCreatorId().equals(userId)) {
             throw new NotEnoughRights("Has other creator");
         }
 
-        recipeRepository.delete(foundRecipe.get());
+        recipeRepository.delete(recipe);
+    }
+
+    public void likeRecipe(UserReactionToRecipeRequest request, String login) throws RecipeNotFound, UserNotFound {
+        var user = getUserByLogin(login);
+
+        var likedRecipes = updateUserReactionToRecipe(user.getLikedRecipes(), request);
+
+        if (likedRecipes.equals(user.getLikedRecipes())) {
+            return;
+        }
+
+        user.setLikedRecipes(likedRecipes);
+        userRepository.save(user);
+    }
+
+    public void favouriteRecipe(UserReactionToRecipeRequest request, String login) throws RecipeNotFound, UserNotFound {
+        var user = getUserByLogin(login);
+
+        var favouriteRecipes = updateUserReactionToRecipe(user.getFavouriteRecipes(), request);
+
+        if (favouriteRecipes.equals(user.getFavouriteRecipes())) {
+            return;
+        }
+
+        user.setFavouriteRecipes(favouriteRecipes);
+        userRepository.save(user);
+    }
+
+    private Set<Recipe> updateUserReactionToRecipe(Set<Recipe> userFavouriteRecipes, UserReactionToRecipeRequest request) throws RecipeNotFound {
+        Set<Recipe> favouriteRecipes = new HashSet<>(userFavouriteRecipes);
+
+        boolean isContainsRecipe = favouriteRecipes.stream().map(Recipe::getId).anyMatch(request.getRecipeId()::equals);
+
+        if (isContainsRecipe == request.isActive()) {
+            return favouriteRecipes;
+        }
+
+        var recipe = getRecipeById(request.getRecipeId());
+
+        if (request.isActive()) {
+            favouriteRecipes.add(recipe);
+        }
+        else {
+            favouriteRecipes.remove(recipe);
+        }
+
+        return favouriteRecipes;
+    }
+
+    private User getUserByLogin(String login) throws UserNotFound {
+        var foundUser = userRepository.findByLogin(login);
+
+        if (foundUser.isEmpty()) {
+            throw new UserNotFound("User not found");
+        }
+
+        return foundUser.get();
     }
 
     private Set<Tag> createOrFindTags(Set<TagRequest> tagsRequest) {
