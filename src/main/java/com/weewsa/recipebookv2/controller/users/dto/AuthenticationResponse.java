@@ -1,4 +1,4 @@
-package com.weewsa.recipebookv2.authenticate.dto;
+package com.weewsa.recipebookv2.controller.users.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

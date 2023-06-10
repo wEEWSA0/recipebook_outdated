@@ -1,8 +1,5 @@
-package com.weewsa.recipebookv2.recipe.dto;
+package com.weewsa.recipebookv2.controller.recipes.dto;
 
-import com.weewsa.recipebookv2.ingredient.Ingredient;
-import com.weewsa.recipebookv2.step.Step;
-import com.weewsa.recipebookv2.tag.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

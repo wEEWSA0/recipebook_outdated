@@ -1,8 +1,5 @@
 package com.weewsa.recipebookv2.recipe;
 
-import com.weewsa.recipebookv2.ingredient.IngredientRepository;
-import com.weewsa.recipebookv2.step.StepRepository;
-import com.weewsa.recipebookv2.tag.TagRepository;
 import com.weewsa.recipebookv2.user.UserRepository;
 import com.weewsa.recipebookv2.user.exception.UserNotFound;
 import lombok.*;
@@ -15,10 +12,6 @@ import java.util.Set;
 @Service
 public class RecipeResponseCreator {
     private final UserRepository userRepository;
-    private final RecipeRepository recipeRepository;
-    private final TagRepository tagRepository;
-    private final IngredientRepository ingredientRepository;
-    private final StepRepository stepRepository;
 
     public RecipeResponse createResponse(Recipe recipe) throws UserNotFound {
         var userFound = userRepository.findById(recipe.getCreatorId());
@@ -27,9 +20,7 @@ public class RecipeResponseCreator {
             throw new UserNotFound("User not found");
         }
 
-        var userLogin = userFound.get().getLogin();
-
-//        var recipeTags = recipeRepository.findRecipeTagsInById(recipe.getId());
+        var user = userFound.get();
 
         RecipeResponse recipeResponse = RecipeResponse.builder()
                 .id(recipe.getId())
@@ -38,12 +29,12 @@ public class RecipeResponseCreator {
                 .imageUrl(recipe.getImageUrl())
                 .cookingTime(recipe.getCookingTime())
                 .personsCount(recipe.getPersonsCount())
-                .creatorLogin(userLogin)
+                .creatorLogin(user.getLogin())
                 .recipeTags(recipe.getRecipeTags())
                 .ingredients(recipe.getIngredients())
                 .steps(recipe.getSteps())
-                .likedUsersCount(recipe.getLikedUsers().size())
-                .favouriteUsersCount(recipe.getFavouriteUsers().size())
+                .likedUsersCount(user.getLikedRecipes().size())
+                .favouriteUsersCount(user.getFavouriteRecipes().size())
                 .build();
 
         return recipeResponse;

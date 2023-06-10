@@ -1,6 +1,8 @@
 package com.weewsa.recipebookv2.user;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.weewsa.recipebookv2.recipe.Recipe;
 import com.weewsa.recipebookv2.refreshToken.RefreshToken;
 import jakarta.persistence.*;
@@ -44,15 +46,21 @@ public class User implements UserDetails {
     private String aboutMe;
     @Enumerated(EnumType.STRING)
     private Role role;
-    @JsonBackReference
+    @JsonIgnore
+    @ManyToMany
     @Lazy
-    @OneToOne(mappedBy = "user")
-    private RefreshToken refreshToken;
-    @ManyToMany(mappedBy = "likedUsers")
-    @Lazy
+    @JoinTable(name = "liked",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "recipe_id"),
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"recipe_id", "user_id"})})
     private Set<Recipe> likedRecipes;
-    @ManyToMany(mappedBy = "favouriteUsers")
+    @JsonIgnore
+    @ManyToMany
     @Lazy
+    @JoinTable(name = "favourite",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "recipe_id"),
+            uniqueConstraints = {@UniqueConstraint(columnNames = {"recipe_id", "user_id"})})
     private Set<Recipe> favouriteRecipes;
 
     @Override

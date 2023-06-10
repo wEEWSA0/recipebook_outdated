@@ -1,9 +1,6 @@
 package com.weewsa.recipebookv2.refreshToken;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import com.weewsa.recipebookv2.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -19,8 +16,9 @@ import org.springframework.context.annotation.Lazy;
 @AllArgsConstructor
 @Entity
 public class RefreshToken {
+    @JsonIgnore
     @Id
-    @NotNull
+    @Lazy
     private Long userId;
     @NotNull
     private String token;

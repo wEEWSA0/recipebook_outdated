@@ -1,6 +1,7 @@
 package com.weewsa.recipebookv2.tag;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.weewsa.recipebookv2.recipe.Recipe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,8 +22,4 @@ public class Tag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    @ManyToMany(mappedBy = "recipeTags")
-//    @JsonIgnore
-    @Lazy
-    private Set<Recipe> tagRecipes;
 }

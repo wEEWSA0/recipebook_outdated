@@ -1,11 +1,11 @@
-package com.weewsa.recipebookv2.controller;
+package com.weewsa.recipebookv2.controller.users;
 
 import com.weewsa.recipebookv2.authenticate.AuthenticationService;
 import com.weewsa.recipebookv2.authenticate.JWTService;
-import com.weewsa.recipebookv2.authenticate.dto.AuthenticationRequest;
-import com.weewsa.recipebookv2.authenticate.dto.AuthenticationResponse;
-import com.weewsa.recipebookv2.authenticate.dto.RefreshTokenRequest;
-import com.weewsa.recipebookv2.authenticate.dto.RegisterRequest;
+import com.weewsa.recipebookv2.controller.users.dto.AuthenticationRequest;
+import com.weewsa.recipebookv2.controller.users.dto.AuthenticationResponse;
+import com.weewsa.recipebookv2.controller.users.dto.RefreshTokenRequest;
+import com.weewsa.recipebookv2.controller.users.dto.RegisterRequest;
 import com.weewsa.recipebookv2.authenticate.exception.NotAuthorized;
 import com.weewsa.recipebookv2.refreshToken.exception.InvalidToken;
 import com.weewsa.recipebookv2.refreshToken.exception.NotEnoughRights;
@@ -13,13 +13,10 @@ import com.weewsa.recipebookv2.user.Role;
 import com.weewsa.recipebookv2.user.UserService;
 import com.weewsa.recipebookv2.user.exception.UserAlreadyExists;
 import com.weewsa.recipebookv2.user.exception.UserNotFound;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")

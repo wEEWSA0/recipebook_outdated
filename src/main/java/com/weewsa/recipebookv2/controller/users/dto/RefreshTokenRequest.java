@@ -1,4 +1,4 @@
-package com.weewsa.recipebookv2.recipe.dto;
+package com.weewsa.recipebookv2.controller.users.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NameRequest {
-    private String name;
+public class RefreshTokenRequest {
+    private String refreshToken;
 }

@@ -1,15 +1,13 @@
 package com.weewsa.recipebookv2.recipe;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.weewsa.recipebookv2.ingredient.Ingredient;
 import com.weewsa.recipebookv2.step.Step;
 import com.weewsa.recipebookv2.tag.Tag;
 import com.weewsa.recipebookv2.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.context.annotation.Lazy;
 
 import java.sql.Date;
@@ -21,9 +19,11 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+//@EqualsAndHashCode(exclude = {"ingredients", "steps"})
 public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
     private String name;
     private String description;
@@ -32,32 +32,30 @@ public class Recipe {
     private Short personsCount;
     private Long creatorId;
     private Date createDate;
+    @JsonIgnore
     @ManyToMany
-//    @JsonBackReference
     @Lazy
     @JoinTable(name = "recipe_tag",
             joinColumns = @JoinColumn(name = "recipe_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id"),
             uniqueConstraints = {@UniqueConstraint(columnNames = {"recipe_id", "tag_id"})})
     private Set<Tag> recipeTags;
-    @ManyToMany
-    @Lazy
-    @JoinTable(name = "liked",
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "step",
             joinColumns = @JoinColumn(name = "recipe_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"),
-            uniqueConstraints = {@UniqueConstraint(columnNames = {"recipe_id", "user_id"})})
-    private Set<User> likedUsers;
-    @ManyToMany
-    @Lazy
-    @JoinTable(name = "favourite",
-            joinColumns = @JoinColumn(name = "recipe_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id"),
-            uniqueConstraints = {@UniqueConstraint(columnNames = {"recipe_id", "user_id"})})
-    private Set<User> favouriteUsers;
-    @OneToMany(mappedBy = "recipe")
+            inverseJoinColumns = {@JoinColumn(name = "step_number"), @JoinColumn(name = "recipe_id")}
+    )
     @Lazy
     private Set<Step> steps;
-    @OneToMany(mappedBy = "recipe")
+    @JsonIgnore
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "ingredient",
+            joinColumns = @JoinColumn(name = "recipe_id"),
+            inverseJoinColumns = {@JoinColumn(name = "ingredient_number"), @JoinColumn(name = "recipe_id")}
+    )
     @Lazy
     private Set<Ingredient> ingredients;
 

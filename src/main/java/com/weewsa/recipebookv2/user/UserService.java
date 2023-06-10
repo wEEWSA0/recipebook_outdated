@@ -1,7 +1,6 @@
 package com.weewsa.recipebookv2.user;
 
-import com.weewsa.recipebookv2.authenticate.JWTService;
-import com.weewsa.recipebookv2.authenticate.dto.RegisterRequest;
+import com.weewsa.recipebookv2.controller.users.dto.RegisterRequest;
 import com.weewsa.recipebookv2.user.exception.UserNotFound;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;

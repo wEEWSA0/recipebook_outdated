@@ -2,10 +2,10 @@ package com.weewsa.recipebookv2.recipe;
 
 import com.weewsa.recipebookv2.ingredient.Ingredient;
 import com.weewsa.recipebookv2.ingredient.IngredientRepository;
-import com.weewsa.recipebookv2.recipe.dto.IngredientRequest;
-import com.weewsa.recipebookv2.recipe.dto.RecipeRequest;
-import com.weewsa.recipebookv2.recipe.dto.StepRequest;
-import com.weewsa.recipebookv2.recipe.dto.TagRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.IngredientRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.RecipeRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.StepRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.TagRequest;
 import com.weewsa.recipebookv2.recipe.exception.RecipeNotFound;
 import com.weewsa.recipebookv2.refreshToken.exception.NotEnoughRights;
 import com.weewsa.recipebookv2.step.Step;
@@ -28,7 +28,6 @@ public class RecipeService {
     private final IngredientRepository ingredientRepository;
     private final StepRepository stepRepository;
 
-    @Transactional
     public Recipe getRecipeById(Long recipeId) throws RecipeNotFound {
         var foundRecipe = recipeRepository.findById(recipeId);
 
@@ -39,7 +38,6 @@ public class RecipeService {
         return foundRecipe.get();
     }
 
-    @Transactional
     public Set<Recipe> getRecipesWithName(String name) throws RecipeNotFound {
         var foundRecipes = recipeRepository.findAllByNameContaining(name);
 
@@ -49,22 +47,10 @@ public class RecipeService {
 
         return foundRecipes;
     }
+
     // todo RecipeModel ответы
-    @Transactional
     public Set<Recipe> getRecipesWithTags(Set<TagRequest> tagRequests) throws RecipeNotFound {
-        Set<Tag> tags = new HashSet<>();
-
-        for (TagRequest tagRequest : tagRequests) {
-            Optional<Tag> foundTag = tagRepository.findTagByName(tagRequest.getName());
-
-            if (foundTag.isPresent()) {
-                tags.add(foundTag.get());
-            }
-        }
-
-        if (tags.size() < 1) {
-            return new HashSet<>();
-        }
+        Set<Tag> tags = getExistTags(tagRequests);
 
         var foundRecipes = recipeRepository.findAllByRecipeTagsIn(tags);
 
@@ -75,21 +61,8 @@ public class RecipeService {
         return foundRecipes;
     }
 
-    @Transactional
     public Set<Recipe> getRecipesWithTagsAndName(Set<TagRequest> tagRequests, String name) throws RecipeNotFound {
-        Set<Tag> tags = new HashSet<>();
-
-        for (TagRequest tagRequest : tagRequests) {
-            Optional<Tag> foundTag = tagRepository.findTagByName(tagRequest.getName());
-
-            if (foundTag.isPresent()) {
-                tags.add(foundTag.get());
-            }
-        }
-
-        if (tags.size() < 1) {
-            return new HashSet<>();
-        }
+        Set<Tag> tags = getExistTags(tagRequests);
 
         var foundRecipes = recipeRepository.findAllByRecipeTagsInAndNameContaining(tags, name);
 
@@ -100,6 +73,7 @@ public class RecipeService {
         return foundRecipes;
     }
 
+    @Transactional(rollbackOn = Exception.class)
     public void createRecipe(RecipeRequest recipeRequest, String login) {
         var userId = userRepository.findIdByLogin(login);
 
@@ -119,16 +93,12 @@ public class RecipeService {
                 .build();
 
         var recipeEntity = recipeRepository.save(newRecipe);
-//
-//        recipeEntity.setRecipeTags(tags);
-//
-//        recipeEntity = recipeRepository.save(newRecipe);
 
         // create recipe steps and ingredients
-        createStepsAndIngredients(recipeEntity, recipeRequest.getSteps(), recipeRequest.getIngredients());
+        createStepsAndIngredients(recipeEntity.getId(), recipeRequest.getSteps(), recipeRequest.getIngredients());
     }
 
-    @Transactional
+    @Transactional(rollbackOn = Exception.class)
     public void editRecipe(Long recipeId, RecipeRequest recipeRequest, String login) throws RecipeNotFound, NotEnoughRights {
         Optional<Recipe> foundRecipe = recipeRepository.findById(recipeId);
 
@@ -158,12 +128,12 @@ public class RecipeService {
         recipe.setPersonsCount(recipeRequest.getPersonsCount());
         recipe.setRecipeTags(tags);
 
-        var recipeEntity = recipeRepository.save(recipe);
+        recipeRepository.save(recipe);
 
-        stepRepository.deleteAllByRecipeId(recipeEntity.getId());
-        ingredientRepository.deleteAllByRecipeId(recipeEntity.getId());
+        stepRepository.deleteAllByRecipeId(recipeId);
+        ingredientRepository.deleteAllByRecipeId(recipeId);
 
-        createStepsAndIngredients(recipeEntity, recipeRequest.getSteps(), recipeRequest.getIngredients());
+        createStepsAndIngredients(recipeId, recipeRequest.getSteps(), recipeRequest.getIngredients());
     }
 
     public void deleteRecipe(Long recipeId, String login) throws RecipeNotFound, NotEnoughRights {
@@ -202,14 +172,14 @@ public class RecipeService {
         return tags;
     }
 
-    private void createStepsAndIngredients(Recipe recipe, Set<StepRequest> stepRequests, Set<IngredientRequest> ingredientRequests) {
+    private void createStepsAndIngredients(Long recipeId, Set<StepRequest> stepRequests, Set<IngredientRequest> ingredientRequests) {
         // create steps
         short stepNumber = 1;
         for (StepRequest stepRequest : stepRequests) {
             var newStep = Step.builder()
                     .stepNumber(stepNumber)
                     .description(stepRequest.getDescription())
-                    .recipe(recipe)
+                    .recipeId(recipeId)
                     .build();
             stepRepository.save(newStep);
             stepNumber++;
@@ -222,10 +192,28 @@ public class RecipeService {
                     .title(ingredientRequest.getTitle())
                     .productsDescription(ingredientRequest.getProductsDescription())
                     .ingredientNumber(ingredientNumber)
-                    .recipe(recipe)
+                    .recipeId(recipeId)
                     .build();
             ingredientRepository.save(newIngredient);
             ingredientNumber++;
         }
+    }
+
+    private Set<Tag> getExistTags(Set<TagRequest> tagRequests) {
+        Set<Tag> tags = new HashSet<>();
+
+        for (TagRequest tagRequest : tagRequests) {
+            Optional<Tag> foundTag = tagRepository.findTagByName(tagRequest.getName());
+
+            if (foundTag.isPresent()) {
+                tags.add(foundTag.get());
+            }
+        }
+
+        if (tags.size() < 1) {
+            return new HashSet<>();
+        }
+
+        return tags;
     }
 }

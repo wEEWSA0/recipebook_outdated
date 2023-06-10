@@ -1,24 +1,21 @@
-package com.weewsa.recipebookv2.controller;
+package com.weewsa.recipebookv2.controller.recipes;
 
 import com.weewsa.recipebookv2.authenticate.JWTService;
 import com.weewsa.recipebookv2.authenticate.exception.NotAuthorized;
-import com.weewsa.recipebookv2.recipe.Recipe;
 import com.weewsa.recipebookv2.recipe.RecipeResponseCreator;
 import com.weewsa.recipebookv2.recipe.RecipeService;
-import com.weewsa.recipebookv2.recipe.dto.NameRequest;
-import com.weewsa.recipebookv2.recipe.dto.RecipeRequest;
-import com.weewsa.recipebookv2.recipe.dto.NameAndTagsRequest;
-import com.weewsa.recipebookv2.recipe.dto.TagRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.NameRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.RecipeRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.NameAndTagsRequest;
+import com.weewsa.recipebookv2.controller.recipes.dto.TagRequest;
 import com.weewsa.recipebookv2.recipe.exception.RecipeNotFound;
 import com.weewsa.recipebookv2.refreshToken.exception.InvalidToken;
 import com.weewsa.recipebookv2.refreshToken.exception.NotEnoughRights;
-import com.weewsa.recipebookv2.tag.Tag;
 import com.weewsa.recipebookv2.user.Role;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.tags.RequestContextAwareTag;
 
 import java.util.Set;
 
@@ -34,7 +31,7 @@ public class RecipeController {
         try {
             var recipe = recipeService.getRecipeById(id);
 
-            return ResponseEntity.ok(recipe);
+            return ResponseEntity.ok(recipeResponseCreator.createResponse(recipe));
         } catch (RecipeNotFound e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -114,7 +111,7 @@ public class RecipeController {
         try {
             var recipes = recipeService.getRecipesWithTags(tags);
 
-            return ResponseEntity.ok(recipes);
+            return ResponseEntity.ok(recipeResponseCreator.createSetOfResponse(recipes));
         } catch (RecipeNotFound e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -127,7 +124,7 @@ public class RecipeController {
         try {
             var recipes = recipeService.getRecipesWithTagsAndName(request.getTags(), request.getName());
 
-            return ResponseEntity.ok(recipes);
+            return ResponseEntity.ok(recipeResponseCreator.createSetOfResponse(recipes));
         } catch (RecipeNotFound e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {

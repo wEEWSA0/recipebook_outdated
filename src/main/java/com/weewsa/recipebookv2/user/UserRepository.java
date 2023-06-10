@@ -9,8 +9,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByLogin(String login);
-//    Optional<User> findByLoginAndPassword(String login, String password);
     @Query("SELECT u.id FROM User u WHERE u.login = :login")
-    Long findIdByLogin(@Param("login") String login);// todo не робит код
+    Long findIdByLogin(@Param("login") String login);
     boolean existsByLogin(String login);
 }

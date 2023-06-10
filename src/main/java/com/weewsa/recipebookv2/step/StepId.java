@@ -13,6 +13,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StepId implements Serializable {
-    private Recipe recipe;
+    private Long recipeId;
     private Short stepNumber;
 }

@@ -1,5 +1,6 @@
 package com.weewsa.recipebookv2.step;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.weewsa.recipebookv2.recipe.Recipe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,16 +17,12 @@ import java.util.Set;
 @Entity
 @IdClass(StepId.class)
 public class Step {
-//    @Id
-//    @Column(name = "recipe_id")
-//    private Long recipeId;
     @Id
+    @Column(name = "step_number")
     private Short stepNumber;
-    private String description;
     @Id
-//    @Column(name = "recipe_id")
-    @ManyToOne
-    @JoinColumn(name = "recipe_id")
-    private Recipe recipe;
+    @Column(name = "recipe_id")
+    private Long recipeId;
+    private String description;
 }
 
